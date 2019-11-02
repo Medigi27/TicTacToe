@@ -8,18 +8,18 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import org.json.*;
 import java.lang.String;
-import java.util.ArrayList;
+import java.util.Random;
 
 
 public class Main {
 
     public static String jsonString = "{\"youPlay\": 2, \"field\": [[0,0,0], [0,0,0], [0,0,0]], \"winner\": 0}";
     public static int[][] arr = new int[3][3];
-
-
+    public static Integer winner = 0;
     public static void main(String[] args) throws IOException, InterruptedException,JSONException {
-        HttpClient client = HttpClient.newHttpClient();
         //отправляем запрос на сервер
+        for(int k = 0; k < 5; k++){
+        HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://tic-tac-toe-2019.herokuapp.com/play/"))
                 .timeout(Duration.ofMinutes(1))
@@ -38,11 +38,24 @@ public class Main {
         System.out.println(youPlay);
         Integer winner = obj.getInt("winner");
         System.out.println(winner);
+            if(winner == 1){
+                System.out.println("Победил игрок № 1");
+                break;
+            }
+            if(winner == 2){
+                System.out.println("Победил игрок № 2");
+                break;
+            }
+            if(winner == 3){
+                System.out.println("Ничья");
+                break;
+            }
         JSONArray arrJson = obj.getJSONArray("field");
 
+        //заполняем двумерный массив
         for (int i = 0; i < arrJson.length(); i++) {
             JSONArray arrJson2 = arrJson.getJSONArray(i);
-            for(int j = 0; j < 3; j++){
+            for (int j = 0; j < 3; j++) {
                 arr[i][j] = arrJson2.getInt(j);
             }
         }
@@ -57,5 +70,37 @@ public class Main {
             System.out.println();//перенос строки ради визуального сохранения табличной формы
         }
 
+        //определяем стратегию победителя
+
+
+        //делаем ход
+        Random rnd = new Random(System.currentTimeMillis());
+        outerloop:
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (arr[i][j] == 0) {
+                    arr[i][j] = youPlay;
+                    break outerloop;
+                }
+            }
+        }
+
+        //самопреверка хода
+        for (int i = 0; i < 3; i++) {  //идём по строкам
+            for (int j = 0; j < 3; j++) {//идём по столбцам
+                System.out.print(" " + arr[i][j] + " "); //вывод элемента
+            }
+            System.out.println();//перенос строки ради визуального сохранения табличной формы
+        }
+
+        //конвертируем в JSON
+        JSONArray jsArr = new JSONArray(arr);
+        System.out.println(jsArr.toString());
+        jsonString = "{\"youPlay\": 2, \"field\": " + jsArr + ", \"winner\": 0}";
+        System.out.println(jsonString);
+
+
+        //повторяем весь процесс
+        }
     }
 }
